@@ -8,9 +8,9 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ===== VALIDASI API KEY =====
+// ===== VALIDATE API KEY =====
 if (!process.env.ELEVENLABS_API_KEY) {
-  console.error('❌ ELEVENLABS_API_KEY tidak ditemukan di .env');
+  console.error('❌ ELEVENLABS_API_KEY not found in .env');
   process.exit(1);
 }
 console.log('✅ ELEVENLABS_API_KEY loaded');
@@ -34,54 +34,43 @@ const VOICE_MAP = {
 };
 
 // ===== EMOTION → VOICE SETTINGS =====
-function getVoiceSettings(emotion, speed = 1.0, pitch = 1.0) {
-  let settings = {};
+function getVoiceSettings(emotion) {
   switch (emotion) {
-    case 'angry': // marah
-      settings = { stability: 0.18, similarity_boost: 0.85, style: 0.9 };
-      break;
-    case 'sad': // sedih
-      settings = { stability: 0.75, similarity_boost: 0.7, style: 0.2 };
-      break;
-    case 'nervous': // gugup
-      settings = { stability: 0.4, similarity_boost: 0.6, style: 0.5 };
-      break;
-    case 'gentle': // lemah lembut
-      settings = { stability: 0.9, similarity_boost: 0.75, style: 0.15 };
-      break;
+    case 'angry':
+      return { stability: 0.18, similarity_boost: 0.85, style: 0.9 };
+    case 'sad':
+      return { stability: 0.75, similarity_boost: 0.7, style: 0.2 };
+    case 'nervous':
+      return { stability: 0.4, similarity_boost: 0.6, style: 0.5 };
+    case 'gentle':
+      return { stability: 0.9, similarity_boost: 0.75, style: 0.15 };
     default:
-      settings = { stability: 0.6, similarity_boost: 0.7, style: 0.3 };
+      return { stability: 0.6, similarity_boost: 0.7, style: 0.3 };
   }
-
-  // ⚡ Tambahkan pitch dan speed ke voice_settings jika ElevenLabs API mendukung
-  settings.pitch = pitch;  // opsional, jika API tidak mendukung bisa diabaikan
-  settings.rate = speed;    // opsional, jika API tidak mendukung bisa diabaikan
-
-  return settings;
 }
 
 // ===== GENERATE AUDIO =====
 app.post('/generate-audio', async (req, res) => {
   try {
-    const { text, voice, emotion, speed = 1.0, pitch = 1.0 } = req.body;
+    const { text, voice, emotion } = req.body;
 
     if (!text || !voice) {
       return res.status(400).json({ error: 'text dan voice wajib' });
     }
 
     const voiceId = VOICE_MAP[voice];
-    if (!voiceId) {
-      return res.status(400).json({ error: 'voice tidak valid (1-3)' });
-    }
+    if (!voiceId) return res.status(400).json({ error: 'voice tidak valid (1-3)' });
 
-    const outputFile = path.join(audioOutputDir, 'output.mp3');
+    const finalText = text; // ⚠️ emotion tidak ditambahkan ke text
+    const timestamp = Date.now();
+    const outputFile = path.join(audioOutputDir, `output_${timestamp}.mp3`);
 
     const response = await axios.post(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
       {
-        text,
+        text: finalText,
         model_id: 'eleven_multilingual_v2',
-        voice_settings: getVoiceSettings(emotion, speed, pitch)
+        voice_settings: getVoiceSettings(emotion)
       },
       {
         headers: {
@@ -99,7 +88,8 @@ app.post('/generate-audio', async (req, res) => {
 
     res.json({
       success: true,
-      file: '/audio/output/output.mp3'
+      file: `/audio/output_${timestamp}.mp3`,
+      download: `/audio/output_${timestamp}.mp3`
     });
 
   } catch (err) {
