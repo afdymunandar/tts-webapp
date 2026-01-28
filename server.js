@@ -8,33 +8,38 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-/* ================== VALIDASI AWAL ================== */
+/* ================= VALIDASI ENV ================= */
 if (!process.env.ELEVEN_API_KEY) {
   console.error('❌ ELEVEN_API_KEY tidak ditemukan di .env');
   process.exit(1);
 }
 console.log('✅ ELEVEN_API_KEY loaded');
 
-/* ================== MIDDLEWARE ================== */
+/* ================= MIDDLEWARE ================= */
 app.use(express.json());
 app.use(express.static('frontend'));
 
-/* ================== AUDIO DIR ================== */
-const audioOutputDir = path.join(__dirname, 'audio/output');
+/* ================= AUDIO DIR ================= */
+const audioOutputDir = path.join(__dirname, 'audio', 'output');
 if (!fs.existsSync(audioOutputDir)) {
   fs.mkdirSync(audioOutputDir, { recursive: true });
 }
 
-/* ================== GENERATE AUDIO ================== */
+/* ================= ROUTE TTS ================= */
 app.post('/generate-audio', async (req, res) => {
+  console.log('=== GENERATE AUDIO HIT ===');
+  console.log('BODY:', req.body);
+
   try {
     const { text, voiceId, emotion } = req.body;
 
     if (!text || !voiceId) {
-      return res.status(400).json({ error: 'text dan voiceId wajib' });
+      return res.status(400).json({
+        error: 'text dan voiceId wajib diisi'
+      });
     }
 
-    // Inject emotion secara REALISTIS (sesuai API ElevenLabs)
+    // Inject emotion (opsional)
     const finalText = emotion
       ? `[${emotion.toUpperCase()}] ${text}`
       : text;
@@ -63,7 +68,7 @@ app.post('/generate-audio', async (req, res) => {
 
     fs.writeFileSync(outputFile, response.data);
 
-    console.log('🎧 Audio generated:', outputFile);
+    console.log('✅ Audio generated:', outputFile);
 
     res.json({
       success: true,
@@ -71,12 +76,17 @@ app.post('/generate-audio', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('❌ Generate error:', err.response?.data || err.message);
-    res.status(500).json({ error: 'Generate audio gagal' });
+    console.error(
+      '❌ Generate error:',
+      err.response?.data || err.message
+    );
+    res.status(500).json({
+      error: 'Generate audio gagal'
+    });
   }
 });
 
-/* ================== START ================== */
+/* ================= START SERVER ================= */
 app.listen(PORT, () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
