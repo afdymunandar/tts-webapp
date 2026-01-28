@@ -27,9 +27,6 @@ if (!fs.existsSync(audioOutputDir)) {
 
 /* ================= ROUTE TTS ================= */
 app.post('/generate-audio', async (req, res) => {
-  console.log('=== GENERATE AUDIO HIT ===');
-  console.log('BODY:', req.body);
-
   try {
     const { text, voiceId, emotion } = req.body;
 
