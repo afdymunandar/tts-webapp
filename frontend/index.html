@@ -5,6 +5,18 @@
   <title>TTS Web App</title>
 </head>
 <body>
-  <h1>Skeleton Frontend</h1>
+  <h1>TTS Web App – Multi Voice + Emosi</h1>
+  <label for="character">Character:</label>
+  <select id="character"></select>
+
+  <label for="emotion">Emotion:</label>
+  <select id="emotion"></select>
+
+  <textarea id="text" rows="4" cols="50" placeholder="Tulis teks di sini..."></textarea>
+  <button id="generate">Generate Audio</button>
+
+  <audio id="player" controls></audio>
+
+  <script src="app.js"></script>
 </body>
 </html>
