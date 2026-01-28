@@ -26,7 +26,24 @@ if (!fs.existsSync(audioOutputDir)) {
   fs.mkdirSync(audioOutputDir, { recursive: true });
 }
 
-// ===== GENERATE AUDIO ROUTE =====
+// ===== EMOTION → VOICE SETTINGS =====
+// ⚠️ ElevenLabs TIDAK membaca emotion dari text
+function getVoiceSettings(emotion) {
+  switch (emotion) {
+    case 'angry':
+      return { stability: 0.15, similarity_boost: 0.9 };
+    case 'sad':
+      return { stability: 0.7, similarity_boost: 0.75 };
+    case 'calm':
+      return { stability: 0.8, similarity_boost: 0.7 };
+    case 'nervous':
+      return { stability: 0.35, similarity_boost: 0.6 };
+    default:
+      return { stability: 0.5, similarity_boost: 0.75 };
+  }
+}
+
+// ===== GENERATE AUDIO =====
 app.post('/generate-audio', async (req, res) => {
   try {
     const { text, voiceId, emotion } = req.body;
@@ -35,9 +52,8 @@ app.post('/generate-audio', async (req, res) => {
       return res.status(400).json({ error: 'text dan voiceId wajib' });
     }
 
-    const finalText = emotion
-      ? `[${emotion.toUpperCase()}] ${text}`
-      : text;
+    // ⚠️ JANGAN tambahkan emotion ke text
+    const finalText = text;
 
     const outputFile = path.join(audioOutputDir, 'output.mp3');
 
@@ -46,10 +62,7 @@ app.post('/generate-audio', async (req, res) => {
       {
         text: finalText,
         model_id: 'eleven_multilingual_v2',
-        voice_settings: {
-          stability: 0.4,
-          similarity_boost: 0.8
-        }
+        voice_settings: getVoiceSettings(emotion)
       },
       {
         headers: {
@@ -63,7 +76,7 @@ app.post('/generate-audio', async (req, res) => {
 
     fs.writeFileSync(outputFile, response.data);
 
-    console.log('✅ Audio generated:', outputFile);
+    console.log('✅ Audio generated');
 
     res.json({
       success: true,
@@ -71,7 +84,7 @@ app.post('/generate-audio', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('❌ Generate error:', err.message);
+    console.error('❌ Generate error:', err.response?.data || err.message);
     res.status(500).json({ error: 'Generate audio gagal' });
   }
 });
