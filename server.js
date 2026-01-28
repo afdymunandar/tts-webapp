@@ -34,25 +34,36 @@ const VOICE_MAP = {
 };
 
 // ===== EMOTION → VOICE SETTINGS =====
-function getVoiceSettings(emotion) {
+function getVoiceSettings(emotion, speed = 1.0, pitch = 1.0) {
+  let settings = {};
   switch (emotion) {
     case 'angry': // marah
-      return { stability: 0.18, similarity_boost: 0.85, style: 0.9 };
+      settings = { stability: 0.18, similarity_boost: 0.85, style: 0.9 };
+      break;
     case 'sad': // sedih
-      return { stability: 0.75, similarity_boost: 0.7, style: 0.2 };
+      settings = { stability: 0.75, similarity_boost: 0.7, style: 0.2 };
+      break;
     case 'nervous': // gugup
-      return { stability: 0.4, similarity_boost: 0.6, style: 0.5 };
+      settings = { stability: 0.4, similarity_boost: 0.6, style: 0.5 };
+      break;
     case 'gentle': // lemah lembut
-      return { stability: 0.9, similarity_boost: 0.75, style: 0.15 };
+      settings = { stability: 0.9, similarity_boost: 0.75, style: 0.15 };
+      break;
     default:
-      return { stability: 0.6, similarity_boost: 0.7, style: 0.3 };
+      settings = { stability: 0.6, similarity_boost: 0.7, style: 0.3 };
   }
+
+  // ⚡ Tambahkan pitch dan speed ke voice_settings jika ElevenLabs API mendukung
+  settings.pitch = pitch;  // opsional, jika API tidak mendukung bisa diabaikan
+  settings.rate = speed;    // opsional, jika API tidak mendukung bisa diabaikan
+
+  return settings;
 }
 
 // ===== GENERATE AUDIO =====
 app.post('/generate-audio', async (req, res) => {
   try {
-    const { text, voice, emotion } = req.body;
+    const { text, voice, emotion, speed = 1.0, pitch = 1.0 } = req.body;
 
     if (!text || !voice) {
       return res.status(400).json({ error: 'text dan voice wajib' });
@@ -63,16 +74,14 @@ app.post('/generate-audio', async (req, res) => {
       return res.status(400).json({ error: 'voice tidak valid (1-3)' });
     }
 
-    const finalText = text; // ⚠️ emotion tidak ditambahkan ke text
-
     const outputFile = path.join(audioOutputDir, 'output.mp3');
 
     const response = await axios.post(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
       {
-        text: finalText,
+        text,
         model_id: 'eleven_multilingual_v2',
-        voice_settings: getVoiceSettings(emotion)
+        voice_settings: getVoiceSettings(emotion, speed, pitch)
       },
       {
         headers: {
