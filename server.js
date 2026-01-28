@@ -34,43 +34,59 @@ const VOICE_MAP = {
 };
 
 // ===== EMOTION → VOICE SETTINGS =====
-function getVoiceSettings(emotion) {
+function getVoiceSettings(emotion, speed = 1, pitch = 1) {
+  const settings = { stability: 0.7, similarity_boost: 0.75 };
+
   switch (emotion) {
     case 'angry':
-      return { stability: 0.18, similarity_boost: 0.85, style: 0.9 };
+      settings.stability = 0.18;
+      settings.similarity_boost = 0.85;
+      break;
     case 'sad':
-      return { stability: 0.75, similarity_boost: 0.7, style: 0.2 };
+      settings.stability = 0.75;
+      settings.similarity_boost = 0.7;
+      break;
     case 'nervous':
-      return { stability: 0.4, similarity_boost: 0.6, style: 0.5 };
+      settings.stability = 0.4;
+      settings.similarity_boost = 0.6;
+      break;
     case 'gentle':
-      return { stability: 0.9, similarity_boost: 0.75, style: 0.15 };
-    default:
-      return { stability: 0.6, similarity_boost: 0.7, style: 0.3 };
+      settings.stability = 0.9;
+      settings.similarity_boost = 0.75;
+      break;
   }
+
+  settings.speed = speed;
+  settings.pitch = pitch;
+
+  return settings;
 }
 
 // ===== GENERATE AUDIO =====
 app.post('/generate-audio', async (req, res) => {
   try {
-    const { text, voice, emotion } = req.body;
+    const { text, voiceId, emotion, speed, pitch } = req.body;
 
-    if (!text || !voice) {
+    // Validate input
+    if (!text || !voiceId) {
       return res.status(400).json({ error: 'text dan voice wajib' });
     }
 
-    const voiceId = VOICE_MAP[voice];
-    if (!voiceId) return res.status(400).json({ error: 'voice tidak valid (1-3)' });
+    // Validate voiceId exists in VOICE_MAP
+    if (!Object.values(VOICE_MAP).includes(voiceId)) {
+      return res.status(400).json({ error: 'voiceId tidak valid' });
+    }
 
-    const finalText = text; // ⚠️ emotion tidak ditambahkan ke text
     const timestamp = Date.now();
     const outputFile = path.join(audioOutputDir, `output_${timestamp}.mp3`);
 
+    // Call ElevenLabs TTS API
     const response = await axios.post(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
       {
-        text: finalText,
+        text,
         model_id: 'eleven_multilingual_v2',
-        voice_settings: getVoiceSettings(emotion)
+        voice_settings: getVoiceSettings(emotion, speed, pitch)
       },
       {
         headers: {
@@ -82,10 +98,11 @@ app.post('/generate-audio', async (req, res) => {
       }
     );
 
+    // Save audio file
     fs.writeFileSync(outputFile, response.data);
-
     console.log('✅ Audio generated:', outputFile);
 
+    // Return file URL for streaming and download
     res.json({
       success: true,
       file: `/audio/output_${timestamp}.mp3`,
