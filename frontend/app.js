@@ -24,11 +24,45 @@ emotions.forEach(e => {
   emotionSelect.appendChild(opt);
 });
 
+// ===== ADD SLIDERS FOR SPEED & PITCH =====
+const sliderContainer = document.createElement('div');
+sliderContainer.style.marginTop = '20px';
+
+const speedLabel = document.createElement('label');
+speedLabel.textContent = "Speech Speed (0.5x - 2x)";
+sliderContainer.appendChild(speedLabel);
+
+const speedSlider = document.createElement('input');
+speedSlider.type = 'range';
+speedSlider.min = 0.5;
+speedSlider.max = 2;
+speedSlider.step = 0.1;
+speedSlider.value = 1;
+sliderContainer.appendChild(speedSlider);
+
+const pitchLabel = document.createElement('label');
+pitchLabel.textContent = "Pitch / Tone (0.5x - 2x)";
+pitchLabel.style.marginTop = '10px';
+sliderContainer.appendChild(pitchLabel);
+
+const pitchSlider = document.createElement('input');
+pitchSlider.type = 'range';
+pitchSlider.min = 0.5;
+pitchSlider.max = 2;
+pitchSlider.step = 0.1;
+pitchSlider.value = 1;
+sliderContainer.appendChild(pitchSlider);
+
+const container = document.querySelector('.container');
+container.insertBefore(sliderContainer, container.querySelector('#generate'));
+
 // ===== EVENT GENERATE AUDIO =====
 document.getElementById('generate').addEventListener('click', async () => {
   const text = document.getElementById('text').value.trim();
   const voice = characterSelect.value;
   const emotion = emotionSelect.value;
+  const speed = parseFloat(speedSlider.value);
+  const pitch = parseFloat(pitchSlider.value);
 
   if (!text) return alert("Isi teks dulu!");
   if (!voice) return alert("Pilih voice dulu!");
@@ -46,7 +80,13 @@ document.getElementById('generate').addEventListener('click', async () => {
     const res = await fetch('/generate-audio', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, voiceId, emotion })
+      body: JSON.stringify({
+        text,
+        voiceId,
+        emotion,
+        speed,
+        pitch
+      })
     });
 
     const data = await res.json();
@@ -54,6 +94,7 @@ document.getElementById('generate').addEventListener('click', async () => {
     if (data.success) {
       // Cache-busting supaya bisa generate berkali-kali
       player.src = data.file + "?t=" + new Date().getTime();
+      player.playbackRate = speed;  // apply speed slider
       player.play();
     } else {
       alert("Generate gagal: " + data.error);
