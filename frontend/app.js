@@ -74,7 +74,7 @@ document.getElementById('generate').addEventListener('click', async () => {
   const player = document.getElementById('player');
   const generateBtn = document.getElementById('generate');
 
-  // Remove old download link if exists
+  // Remove old download button if exists
   const oldDownload = document.getElementById('downloadBtn');
   if (oldDownload) oldDownload.remove();
 
@@ -91,6 +91,7 @@ document.getElementById('generate').addEventListener('click', async () => {
     const data = await res.json();
 
     if (data.success) {
+      // Set audio source
       player.src = data.file + "?t=" + new Date().getTime();
       player.playbackRate = speed;
       player.play();
@@ -98,7 +99,7 @@ document.getElementById('generate').addEventListener('click', async () => {
       // ===== ADD DOWNLOAD BUTTON =====
       const downloadBtn = document.createElement('a');
       downloadBtn.id = 'downloadBtn';
-      downloadBtn.href = data.file;
+      downloadBtn.href = data.download;
       downloadBtn.download = 'output.mp3';
       downloadBtn.textContent = "Download Audio";
       downloadBtn.style.display = 'block';
