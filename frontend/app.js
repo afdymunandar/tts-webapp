@@ -24,7 +24,9 @@ emotions.forEach(e => {
   emotionSelect.appendChild(opt);
 });
 
-// ===== ADD SLIDERS FOR SPEED & PITCH =====
+// ===== SLIDERS FOR SPEED & PITCH =====
+const container = document.querySelector('.container');
+
 const sliderContainer = document.createElement('div');
 sliderContainer.style.marginTop = '20px';
 
@@ -53,10 +55,9 @@ pitchSlider.step = 0.1;
 pitchSlider.value = 1;
 sliderContainer.appendChild(pitchSlider);
 
-const container = document.querySelector('.container');
 container.insertBefore(sliderContainer, container.querySelector('#generate'));
 
-// ===== EVENT GENERATE AUDIO =====
+// ===== GENERATE AUDIO =====
 document.getElementById('generate').addEventListener('click', async () => {
   const text = document.getElementById('text').value.trim();
   const voice = characterSelect.value;
@@ -73,6 +74,10 @@ document.getElementById('generate').addEventListener('click', async () => {
   const player = document.getElementById('player');
   const generateBtn = document.getElementById('generate');
 
+  // Remove old download link if exists
+  const oldDownload = document.getElementById('downloadBtn');
+  if (oldDownload) oldDownload.remove();
+
   generateBtn.disabled = true;
   generateBtn.textContent = "Generating...";
 
@@ -80,22 +85,33 @@ document.getElementById('generate').addEventListener('click', async () => {
     const res = await fetch('/generate-audio', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text,
-        voiceId,
-        emotion,
-        speed,
-        pitch
-      })
+      body: JSON.stringify({ text, voiceId, emotion, speed, pitch })
     });
 
     const data = await res.json();
 
     if (data.success) {
-      // Cache-busting supaya bisa generate berkali-kali
       player.src = data.file + "?t=" + new Date().getTime();
-      player.playbackRate = speed;  // apply speed slider
+      player.playbackRate = speed;
       player.play();
+
+      // ===== ADD DOWNLOAD BUTTON =====
+      const downloadBtn = document.createElement('a');
+      downloadBtn.id = 'downloadBtn';
+      downloadBtn.href = data.file;
+      downloadBtn.download = 'output.mp3';
+      downloadBtn.textContent = "Download Audio";
+      downloadBtn.style.display = 'block';
+      downloadBtn.style.marginTop = '15px';
+      downloadBtn.style.textAlign = 'center';
+      downloadBtn.style.fontWeight = 'bold';
+      downloadBtn.style.color = '#fff';
+      downloadBtn.style.background = 'linear-gradient(90deg, #ff7e5f, #feb47b)';
+      downloadBtn.style.padding = '12px';
+      downloadBtn.style.borderRadius = '10px';
+      downloadBtn.style.textDecoration = 'none';
+      container.insertBefore(downloadBtn, container.querySelector('.upload-section'));
+
     } else {
       alert("Generate gagal: " + data.error);
     }
@@ -109,7 +125,7 @@ document.getElementById('generate').addEventListener('click', async () => {
   }
 });
 
-// ===== EVENT UPLOAD AUDIO =====
+// ===== UPLOAD AUDIO =====
 const uploadBtn = document.getElementById('uploadBtn');
 const uploadAudio = document.getElementById('uploadAudio');
 
@@ -120,11 +136,7 @@ uploadBtn.addEventListener('click', async () => {
   formData.append('file', uploadAudio.files[0]);
 
   try {
-    const res = await fetch('/upload-audio', {
-      method: 'POST',
-      body: formData
-    });
-
+    const res = await fetch('/upload-audio', { method: 'POST', body: formData });
     const data = await res.json();
     alert("File uploaded: " + data.file);
   } catch (err) {
