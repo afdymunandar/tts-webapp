@@ -9,6 +9,7 @@ const emotions = [
   "calm","gentle","nervous","panic","angry","firm","shy","weak","yell","scold","high_pitch","low_pitch"
 ];
 
+// Populate select options
 const characterSelect = document.getElementById('character');
 characters.forEach(c => {
   const opt = document.createElement('option');
@@ -25,6 +26,7 @@ emotions.forEach(e => {
   emotionSelect.appendChild(opt);
 });
 
+// Event listener generate TTS
 document.getElementById('generate').addEventListener('click', async () => {
   const text = document.getElementById('text').value;
   const voiceId = characterSelect.value;
@@ -40,4 +42,23 @@ document.getElementById('generate').addEventListener('click', async () => {
   const player = document.getElementById('player');
   player.src = data.file;
   player.play();
+});
+
+// Event listener upload audio
+const uploadBtn = document.getElementById('uploadBtn');
+const uploadAudio = document.getElementById('uploadAudio');
+
+uploadBtn.addEventListener('click', async () => {
+  if (!uploadAudio.files.length) return alert("Pilih file audio dulu");
+  
+  const formData = new FormData();
+  formData.append('file', uploadAudio.files[0]);
+
+  const res = await fetch('/upload-audio', {
+    method: 'POST',
+    body: formData
+  });
+
+  const data = await res.json();
+  alert("File uploaded: " + data.file);
 });
