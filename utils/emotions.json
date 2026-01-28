@@ -1,0 +1,50 @@
+{
+  "calm": {
+    "stability": 0.75,
+    "similarity_boost": 0.6
+  },
+  "gentle": {
+    "stability": 0.8,
+    "similarity_boost": 0.5
+  },
+  "nervous": {
+    "stability": 0.3,
+    "similarity_boost": 0.7
+  },
+  "panic": {
+    "stability": 0.15,
+    "similarity_boost": 0.85
+  },
+  "angry": {
+    "stability": 0.25,
+    "similarity_boost": 0.9
+  },
+  "firm": {
+    "stability": 0.55,
+    "similarity_boost": 0.8
+  },
+  "shy": {
+    "stability": 0.7,
+    "similarity_boost": 0.4
+  },
+  "weak": {
+    "stability": 0.85,
+    "similarity_boost": 0.3
+  },
+  "high-pitched": {
+    "stability": 0.65,
+    "similarity_boost": 0.5
+  },
+  "low-pitched": {
+    "stability": 0.6,
+    "similarity_boost": 0.55
+  },
+  "shouting": {
+    "stability": 0.2,
+    "similarity_boost": 0.9
+  },
+  "scolding": {
+    "stability": 0.4,
+    "similarity_boost": 0.85
+  }
+}
