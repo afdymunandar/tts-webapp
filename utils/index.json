@@ -1,0 +1,20 @@
+[
+  {
+    "index": 0,
+    "voice": "cgSgspJ2msm6clMCkdW9",
+    "name": "Character 1",
+    "description": "Default voice"
+  },
+  {
+    "index": 1,
+    "voice": "VoiceID2",
+    "name": "Character 2",
+    "description": "Secondary voice"
+  },
+  {
+    "index": 2,
+    "voice": "VoiceID3",
+    "name": "Character 3",
+    "description": "Tertiary voice"
+  }
+]
