@@ -26,34 +26,44 @@ if (!fs.existsSync(audioOutputDir)) {
   fs.mkdirSync(audioOutputDir, { recursive: true });
 }
 
+// ===== VOICE MAP =====
+const VOICE_MAP = {
+  "1": process.env.ELEVENLABS_VOICE_ID_1,
+  "2": process.env.ELEVENLABS_VOICE_ID_2,
+  "3": process.env.ELEVENLABS_VOICE_ID_3
+};
+
 // ===== EMOTION → VOICE SETTINGS =====
-// ⚠️ ElevenLabs TIDAK membaca emotion dari text
 function getVoiceSettings(emotion) {
   switch (emotion) {
-    case 'angry':
-      return { stability: 0.15, similarity_boost: 0.9 };
-    case 'sad':
-      return { stability: 0.7, similarity_boost: 0.75 };
-    case 'calm':
-      return { stability: 0.8, similarity_boost: 0.7 };
-    case 'nervous':
-      return { stability: 0.35, similarity_boost: 0.6 };
+    case 'angry': // marah
+      return { stability: 0.18, similarity_boost: 0.85, style: 0.9 };
+    case 'sad': // sedih
+      return { stability: 0.75, similarity_boost: 0.7, style: 0.2 };
+    case 'nervous': // gugup
+      return { stability: 0.4, similarity_boost: 0.6, style: 0.5 };
+    case 'gentle': // lemah lembut
+      return { stability: 0.9, similarity_boost: 0.75, style: 0.15 };
     default:
-      return { stability: 0.5, similarity_boost: 0.75 };
+      return { stability: 0.6, similarity_boost: 0.7, style: 0.3 };
   }
 }
 
 // ===== GENERATE AUDIO =====
 app.post('/generate-audio', async (req, res) => {
   try {
-    const { text, voiceId, emotion } = req.body;
+    const { text, voice, emotion } = req.body;
 
-    if (!text || !voiceId) {
-      return res.status(400).json({ error: 'text dan voiceId wajib' });
+    if (!text || !voice) {
+      return res.status(400).json({ error: 'text dan voice wajib' });
     }
 
-    // ⚠️ JANGAN tambahkan emotion ke text
-    const finalText = text;
+    const voiceId = VOICE_MAP[voice];
+    if (!voiceId) {
+      return res.status(400).json({ error: 'voice tidak valid (1-3)' });
+    }
+
+    const finalText = text; // ⚠️ emotion tidak ditambahkan ke text
 
     const outputFile = path.join(audioOutputDir, 'output.mp3');
 
@@ -76,7 +86,7 @@ app.post('/generate-audio', async (req, res) => {
 
     fs.writeFileSync(outputFile, response.data);
 
-    console.log('✅ Audio generated');
+    console.log('✅ Audio generated:', outputFile);
 
     res.json({
       success: true,
