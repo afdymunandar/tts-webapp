@@ -18,6 +18,7 @@ console.log('✅ ELEVEN_API_KEY loaded');
 /* ================= MIDDLEWARE ================= */
 app.use(express.json());
 app.use(express.static('frontend'));
+app.use('/audio', express.static(path.join(__dirname, 'audio')));
 
 /* ================= AUDIO DIR ================= */
 const audioOutputDir = path.join(__dirname, 'audio', 'output');
@@ -66,6 +67,12 @@ app.post('/generate-audio', async (req, res) => {
     fs.writeFileSync(outputFile, response.data);
 
     console.log('✅ Audio generated:', outputFile);
+
+    res.json({
+        success: true,
+          file: '/audio/output/output.mp3'
+          });
+    })
 
     res.json({
       success: true,
