@@ -1,14 +1,14 @@
 {
   "name": "tts-webapp",
   "version": "1.0.0",
-  "description": "Web App TTS – Multi-Voice + Emosi",
+  "description": "Web App TTS + Multi-Voice + Emosi",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
+    "axios": "^1.13.4",
     "dotenv": "^16.4.0",
-    "axios": "^1.13.4"
+    "express": "^4.18.2"
   }
 }
